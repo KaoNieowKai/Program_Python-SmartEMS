@@ -1,0 +1,16 @@
+----------- (เปิด Sever) --------------
+
+CMD ไว้เปิด WebApp เอา ip กับ port ให้ตรงกับไฟล์ SmartEMS ที่ใส่ไป
+
+EX : python -m uvicorn main:app --host <IP_ADDRESS> --port <PORT>
+
+python -m uvicorn main:app --host localhost --port 8000
+
+
+
+---------- URL ไว้เปิดบน Web ใส่ตามไฟล์ SmartEMS ที่ใส่ไป -------------
+	
+    EX : "http://<IP_ADDRESS>:<PORT>/api/upload_pdf"
+
+        "http://localhost:8000/api/upload_pdf"           # ใช้ในเครื่องตัวเอ
+

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Smart EMS - รายการเคส</title>
+<style>
+body {
+  font-family: "Segoe UI", sans-serif;
+  margin: 40px;
+  background: linear-gradient(180deg, #f3f6fb 0%, #ffffff 100%);
+}
+h1 {
+  color: #2d7ff9;
+  font-size: 26px;
+  margin-bottom: 15px;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+th, td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
+}
+th {
+  background: #e9f0ff;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+tr:nth-child(even) {
+  background: #f9fbff;
+}
+tr:hover {
+  background: #eef5ff;
+}
+a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+a:hover {
+  text-decoration: underline;
+}
+</style>
+</head>
+<body>
+<h1>📋 รายการเคสทั้งหมด</h1>
+
+<!-- 🔍 ช่องค้นหา -->
+<div style="margin: 10px 0;">
+  <label for="searchInput"><b>🔍 ค้นหาเคส:</b></label>
+  <input type="text" id="searchInput" placeholder="พิมพ์ชื่อ นามสกุล เหตุการณ์ หรือรายละเอียด..."
+         style="padding:8px; width: 50%; border:1px solid #ccc; border-radius:6px; margin-left:10px;">
+</div>
+
+<table>
+  <tr>
+    <th>ชื่อ</th>
+    <th>นามสกุล</th>
+    <th>เหตุการณ์</th>
+    <th>รายละเอียด</th>
+    <th>PDF</th>
+    <th>วันที่</th>
+  </tr>
+  {% for c in cases %}
+  <tr>
+    <td>{{ c[1] }}</td>
+    <td>{{ c[2] }}</td>
+    <td>{{ c[3] }}</td>
+    <td>{{ c[4] }}</td>
+    <td><a href="/{{ c[5] }}" target="_blank">เปิดไฟล์</a></td>
+    <td>{{ c[6] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<!-- 🧠 สคริปต์กรองตาราง -->
+<script>
+document.getElementById("searchInput").addEventListener("keyup", function() {
+  const searchText = this.value.toLowerCase();
+  const rows = document.querySelectorAll("table tr:not(:first-child)");
+  
+  rows.forEach(row => {
+    const cells = Array.from(row.querySelectorAll("td"));
+    const match = cells.some(td => td.textContent.toLowerCase().includes(searchText));
+    row.style.display = match ? "" : "none";
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>แจ้งเหตุฉุกเฉิน - Smart EMS+</title>
+
+  <!-- CSS หลัก -->
+  <link rel="stylesheet" href="/static/style.css">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    .map-container {
+      height: 420px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      overflow: hidden;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background: #2d7ff9;
+      color: white;
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #1d5fd1;
+    }
+
+    .btn-secondary {
+      background: #14a44d;
+      margin-bottom: 10px;
+    }
+
+    .btn-secondary:hover {
+      background: #0e7a38;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: auto;
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>📍 แจ้งเหตุฉุกเฉิน</h2>
+    <a href="/" class="btn-back">⬅ กลับไปหน้ารายการเคส</a>
+    <h2></h2>
+    
+
+    <form id="alertForm" action="/api/alert" method="post">
+
+      <label>ชื่อผู้แจ้ง:</label>
+      <input name="name" required>
+
+      <label>สถานที่เกิดเหตุ:</label>
+      <input name="place" required>
+
+      <label>ตำแหน่งบนแผนที่:</label>
+
+      <!-- ปุ่มใช้ GPS ตำแหน่งปัจจุบัน -->
+      <button id="btnCurrent" type="button" class="btn-secondary">📍 ใช้ตำแหน่งปัจจุบัน</button>
+
+      <div id="map" class="map-container"></div>
+
+      <!-- Hidden LAT/LON -->
+      <input type="hidden" name="lat" id="latInput">
+      <input type="hidden" name="lon" id="lonInput">
+
+      <label>เหตุการณ์:</label>
+      <input name="event" required>
+
+      <label>รายละเอียด:</label>
+      <textarea name="detail" rows="4"></textarea>
+
+      <button type="submit">ส่งแจ้งเหตุ 🚨</button>
+    </form>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    const defaultCenter = [13.736717, 100.523186]; // กรุงเทพ
+
+    const map = L.map('map').setView(defaultCenter, 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    let marker = null;
+
+    // ฟังก์ชัน update lat/lon
+    function updatePosition(lat, lng) {
+      document.getElementById('latInput').value = lat;
+      document.getElementById('lonInput').value = lng;
+    }
+
+    // คลิกบนแผนที่เพื่อตำแหน่ง
+    map.on('click', function (e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+
+      if (marker) {
+        marker.setLatLng(e.latlng);
+      } else {
+        marker = L.marker(e.latlng, { draggable: true }).addTo(map);
+
+        marker.on('dragend', function (ev) {
+          const p = ev.target.getLatLng();
+          updatePosition(p.lat, p.lng);
+        });
+      }
+
+      updatePosition(lat, lng);
+    });
+
+    // -------------------------------
+    // 📍 ปุ่มใช้ตำแหน่งปัจจุบัน (GPS)
+    // -------------------------------
+    document.getElementById("btnCurrent").addEventListener("click", () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+
+            const latlng = L.latLng(lat, lng);
+
+            map.setView(latlng, 16);
+
+            if (marker) {
+              marker.setLatLng(latlng);
+            } else {
+              marker = L.marker(latlng, { draggable: true }).addTo(map);
+
+              marker.on('dragend', function (ev) {
+                const p = ev.target.getLatLng();
+                updatePosition(p.lat, p.lng);
+              });
+            }
+
+            updatePosition(lat, lng);
+          },
+          (err) => {
+            alert("ไม่สามารถรับตำแหน่งได้ : " + err.message);
+          }
+        );
+      } else {
+        alert("เบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง");
+      }
+    });
+
+    // ป้องกันไม่ปักหมุดแต่ส่งฟอร์ม
+    document.getElementById('alertForm').addEventListener('submit', function (e) {
+      if (!document.getElementById('latInput').value) {
+        e.preventDefault();
+        alert("⚠️ กรุณาปักหมุดตำแหน่งก่อนส่งแจ้งเหตุ");
+      }
+    });
+  </script>
+
+</body>
+</html>

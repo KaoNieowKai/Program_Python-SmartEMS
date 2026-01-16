@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EMS+ WebApp</title>
+  <!-- แก้ไข Path รูปภาพให้ถูกต้อง (ใช้ / แทน \) -->
+  <link rel="icon" type="image/png" href="/static/image-ems/babyEMS.png">
+
+  <!-- เชื่อมต่อ Font Awesome สำหรับไอคอน -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- เชื่อม CSS ภายนอก -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="/report"
+style="
+    display:inline-block;
+    background:#2d7ff9;
+    color:white;
+    padding:10px 20px;
+    font-size:18px;
+    font-weight:600;
+    border-radius:10px;
+    text-decoration:none;
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);
+    transition:0.2s;
+"
+onmouseover="this.style.background='#1b5fcc';"
+onmouseout="this.style.background='#2d7ff9';"
+>
+🚨 แจ้งเหตุฉุกเฉิน
+</a>
+    <div class="brand">
+      <div class="logo">
+        <!-- ใช้รูปภาพโลโก้เดิมของคุณ -->
+        <img src="/static/image-ems/babyEMS.png" alt="EMS+" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+      </div>
+      <div class="title">EMS+ WebApp</div>
+    </div>
+    <div class="controls">
+      <input id="searchInput" type="text" placeholder="🔎 ค้นหาชื่อ, อาการ..." />
+      <button id="themeToggle" class="btn subtle">🌙</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2>📋 รายการเคสทั้งหมด</h2>
+        <span style="font-size: 0.9em; color: var(--muted);">พบข้อมูล {{ cases|length }} รายการ</span>
+    </div>
+
+    <div class="table-wrap">
+      <table id="casesTable" class="cases-table" role="table" aria-label="รายการเคส">
+        <thead>
+          <tr>
+            <th width="15%">ชื่อ</th>
+            <th width="15%">นามสกุล</th>
+            <th width="20%">เหตุการณ์</th>
+            <th>รายละเอียด</th>
+            <th width="15%">วันที่</th>
+            <th width="10%">ไฟล์</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- ใช้ Jinja2 Loop ข้อมูลจาก Database (cases.db) -->
+          {% for c in cases %}
+          <tr>
+            <!-- data-label คือหัวใจสำคัญสำหรับแสดงผลบนมือถือ -->
+            <td data-label="ชื่อ">{{ c[1] }}</td>
+            <td data-label="นามสกุล">{{ c[2] }}</td>
+            <td data-label="เหตุการณ์"><span class="status-badge">{{ c[3] }}</span></td>
+            <td data-label="รายละเอียด">{{ c[4] }}</td>
+            <td data-label="วันที่">{{ c[6] }}</td>
+            <td data-label="เอกสาร">
+              <a href="/{{ c[5] }}" target="_blank" class="btn-pdf">
+                <i class="fa-regular fa-file-pdf"></i> เปิดไฟล์
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <small>Create By → Tanakrit Phumcharoen (Nakprasith School)</small>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+  // ========== Search Filter (รองรับการค้นหาจากตารางจริง) ==========
+  document.getElementById('searchInput').addEventListener('input', function(e) {
+      const q = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#casesTable tbody tr');
+      
+      rows.forEach(row => {
+          // ดึงข้อความทั้งหมดในแถวนั้นมาต่อกันเพื่อค้นหา
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(q) ? '' : 'none';
+      });
+  });
+
+  // ========== Theme Toggle ==========
+  (function(){
+    const KEY = 'smarts_em_theme';
+    const body = document.body;
+    const btn = document.getElementById('themeToggle');
+
+    const apply = (mode) => {
+      if(mode === 'dark') {
+        body.classList.add('dark-mode');
+        btn.textContent = '☀️';
+        btn.classList.add('active');
+      } else {
+        body.classList.remove('dark-mode');
+        btn.textContent = '🌙';
+        btn.classList.remove('active');
+      }
+    };
+
+    // Load saved theme
+    const saved = localStorage.getItem(KEY) || 'light';
+    apply(saved);
+
+    btn.addEventListener('click', () => {
+      const now = body.classList.contains('dark-mode') ? 'light' : 'dark';
+      apply(now);
+      localStorage.setItem(KEY, now);
+    });
+  })();
+  </script>
+</body>
+</html>
